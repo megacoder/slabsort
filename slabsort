@@ -1,0 +1,19 @@
+#!/bin/zsh
+cat -- ${@:-/proc/slabinfo} |
+awk	'
+	{
+		sub( /[#].*$/, "" )
+	}
+$0 !~ /: slabdata/	{
+		next
+	}
+	{
+		name = $1
+		pagesPerSlab = $6
+		numSlabs = $15
+		pages = pagesPerSlab * numSlabs
+		if( pages )	{
+			printf "%-23s\t%7u\t%u*%u\n", name, pages, numSlabs, pagesPerSlab
+		}
+	}
+' | sort -nr -k2,2
