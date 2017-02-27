@@ -1,0 +1,21 @@
+#!/bin/zsh
+PAGESIZE=$(getconf PAGESIZE)
+cat -- ${@:-/proc/slabinfo} |
+awk	-v PAGESIZE=${PAGESIZE} '
+	{
+		sub( /[#].*$/, "" )
+	}
+$0 !~ /: slabdata/	{
+		next
+	}
+	{
+		name = $1
+		pagesPerSlab = $6
+		numSlabs = $15
+		pages = pagesPerSlab * numSlabs
+		bytes = pages * PAGESIZE
+		if( bytes )	{
+			printf "%-23s\t%15u\t%u*%u*%u\n", name, bytes, numSlabs, pagesPerSlab, PAGESIZE
+		}
+	}
+' | sort -nr -k2,2
